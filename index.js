@@ -14,7 +14,7 @@ app.use(cors())
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://userManagement:0z0Ihd13OVhFyyza@cluster0.zoyeiku.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -38,6 +38,13 @@ async function run() {
         app.get('/users', async(req, res) =>{
             const usersData = await userCollection.find().toArray() 
             res.send(usersData)
+        })
+
+        app.get('/user/:id', async(req, res) =>{
+            const userId = req.params.id
+            const query = {_id: new ObjectId(userId)}
+            const result = await userCollection.findOne(query)
+            res.send(result)
         })
 
         app.post('/user', async(req, res) =>{
