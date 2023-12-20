@@ -35,32 +35,66 @@ async function run() {
         const userCollection = client.db('usersDB').collection('users')
 
 
-        app.get('/users', async(req, res) =>{
-            const usersData = await userCollection.find().toArray() 
-            res.send(usersData)
-        })
+        app.get('/users', async (req, res) => {
+            const { search } = req.query;
+            if (search) {
+                const query = {
+                    $or: [
+                        { name: { $regex: search, $options: 'i' } },
+                        { email: { $regex: search, $options: 'i' } },
+                        { phone: { $regex: search, $options: 'i' } }
+                    ]
+                };
+                const usersData = await userCollection.find(query).toArray();
+                console.log(usersData);
+                res.send(usersData);
+            } else {
+                const usersData = await userCollection.find().toArray();
+                res.send(usersData);
+            }
+        });
+        
 
-        app.get('/user/:id', async(req, res) =>{
+        app.get('/user/:id', async (req, res) => {
             const userId = req.params.id
-            const query = {_id: new ObjectId(userId)}
+            const query = { _id: new ObjectId(userId) }
             const result = await userCollection.findOne(query)
             res.send(result)
         })
 
-        app.delete('/delete-user/:id', async(req, res) =>{
+        app.put('/update-user/:id', async (req, res) => {
             const userId = req.params.id
-            const query = {_id: new ObjectId(userId)}
+            const UpdateData = req.body
+            const option = { upsert: true }
+            const query = { _id: new ObjectId(userId) }
+            const Update = {
+                $set: {
+                    name: UpdateData.name,
+                    email: UpdateData.email,
+                    phone: UpdateData.phone,
+                    updateAt: UpdateData.updateAt
+                }
+            }
+            const result = await userCollection.updateOne(query, Update, option)
+            res.send(result)
+        })
+
+
+
+        app.delete('/delete-user/:id', async (req, res) => {
+            const userId = req.params.id
+            const query = { _id: new ObjectId(userId) }
             const result = await userCollection.deleteOne(query)
             res.send(result)
         })
 
-        
 
-        app.post('/user', async(req, res) =>{
+
+        app.post('/user', async (req, res) => {
             const userData = req.body
             const result = await userCollection.insertOne(userData)
             res.send(result)
-        })  
+        })
 
 
 
