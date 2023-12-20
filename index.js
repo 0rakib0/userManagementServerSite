@@ -35,6 +35,11 @@ async function run() {
         const userCollection = client.db('usersDB').collection('users')
 
 
+        app.get('/users', async(req, res) =>{
+            const usersData = await userCollection.find().toArray() 
+            res.send(usersData)
+        })
+
         app.post('/user', async(req, res) =>{
             const userData = req.body
             const result = await userCollection.insertOne(userData)
