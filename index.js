@@ -36,7 +36,9 @@ async function run() {
 
 
         app.get('/users', async (req, res) => {
-            const { search } = req.query;
+            const { search, select } = req.query;
+            console.log(select)
+            let usersData = await userCollection.find().toArray();
             if (search) {
                 const query = {
                     $or: [
@@ -45,15 +47,17 @@ async function run() {
                         { phone: { $regex: search, $options: 'i' } }
                     ]
                 };
-                const usersData = await userCollection.find(query).toArray();
-                console.log(usersData);
-                res.send(usersData);
-            } else {
-                const usersData = await userCollection.find().toArray();
-                res.send(usersData);
+                usersData = await userCollection.find(query).toArray();
+            } else if (select === 'acs') {
+                usersData = usersData.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (select === 'dcs') {
+                usersData = usersData.sort((a, b) => b.name.localeCompare(a.name));
             }
+            // const usersData = await userCollection.find().toArray();
+            res.send(usersData);
+
         });
-        
+
 
         app.get('/user/:id', async (req, res) => {
             const userId = req.params.id
